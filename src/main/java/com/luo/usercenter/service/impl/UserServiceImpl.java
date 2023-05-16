@@ -38,7 +38,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 盐值，混淆密码
      */
-    private static final String SALT="yupi";
+    private static final String SALT="luo";
 
     /**
      * 用户注册
@@ -49,7 +49,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword,String planetCode) {
-        // 1.校验
+        // 1.非空校验
         if (StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数为空");
         }
@@ -64,18 +64,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
 
-        //账户不能包含特殊字符
+        //账户不能包含特殊字符，特殊字符使用正则表达式筛选
         String validPattern="[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        // 使用正则表达式进行校验
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if (matcher.find()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户出现特殊字符");
         }
-        //密码和校验密码相同
+
+        //密码和校验密码是否相同
         if(!userPassword.equals(checkPassword)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"校验密码与密码不相同");
         }
 
-        // 账户不能重复
+        // 账户不能重复， 查询数据库当中是否存在相同名称用户
         QueryWrapper<User> queryWrapper=new QueryWrapper<>();
         queryWrapper.eq("userAccount",userAccount);
         long count=userMapper.selectCount(queryWrapper);
@@ -91,7 +93,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"编号重复");
         }
 
-        // 2.加密
+        // 2.对密码进行加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT+userPassword).getBytes());
 
         // 3.插入数据
@@ -130,13 +132,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         //账户不能包含特殊字符
         String validPattern="[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
+
         if (matcher.find()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户出现特殊字符");
         }
 
         // 2.加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT+userPassword).getBytes());
+
 
         //查询用户是否存在
         QueryWrapper<User> queryWrapper=new QueryWrapper<>();

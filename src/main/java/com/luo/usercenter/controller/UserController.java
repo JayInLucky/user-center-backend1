@@ -82,8 +82,14 @@ public class UserController {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         Long userId = currentUser.getId();
+        if (userId==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         //todo 检验用户是否合法
         User user = userService.getById(userId);
+        if (user==null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
         User safeUser = userService.getSafteyUser(user);
         return ResultUtils.success(safeUser);
     }
@@ -95,9 +101,10 @@ public class UserController {
         }
         QueryWrapper<User> queryWrapper =new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)){
-            queryWrapper.like("username",username);
+            queryWrapper.eq("username",username);
         }
         List<User> userList=userService.list(queryWrapper);
+        //脱敏
         List<User> list=userList.stream().map(user -> userService.getSafteyUser(user)).collect(Collectors.toList());
         return ResultUtils.success(list);
     }
@@ -110,7 +117,7 @@ public class UserController {
        if(id<=0){
            throw new BusinessException(ErrorCode.PARAMS_ERROR);
        }
-        boolean b =userService.removeById(id);
+       boolean b =userService.removeById(id);
        return ResultUtils.success(b);
     }
 
