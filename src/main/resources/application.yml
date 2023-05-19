@@ -9,6 +9,13 @@ spring:
   # session 失效时间
   session:
     timeout: 86400  # 一天
+#    swagger 文档
+  profiles:
+    active: dev
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
 server:
   port: 8080
   servlet:
