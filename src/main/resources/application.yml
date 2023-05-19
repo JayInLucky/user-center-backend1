@@ -20,6 +20,7 @@ server:
   port: 8080
   servlet:
     context-path: /api
+    # 自动转换为驼峰 (关闭)
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false

@@ -10,7 +10,7 @@ import java.util.Date;
 /**
  * 用户更新请求
  *
- * @author Shier
+ * @author jj
  */
 @Data
 public class UserSearchRequest extends PageRequest implements Serializable {
