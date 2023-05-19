@@ -2,6 +2,7 @@ package com.luo.usercenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.luo.usercenter.model.domain.User;
+import com.luo.usercenter.model.domain.request.UserUpdatePasswordRequest;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -49,5 +50,20 @@ public interface UserService extends IService<User> {
      * @return
      */
     int userLogout(HttpServletRequest request);
+
+    /**
+     * 获取当前用户
+     * @param request
+     * @return
+     */
+    User getLoginUser(HttpServletRequest request);
+
+    /**
+     * 修改密码
+     *
+     * @param updatePasswordRequest
+     * @param request
+     */
+    boolean updateUserPassword(UserUpdatePasswordRequest updatePasswordRequest, HttpServletRequest request);
 
 }

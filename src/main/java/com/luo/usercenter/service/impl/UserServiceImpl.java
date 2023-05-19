@@ -5,10 +5,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.luo.usercenter.common.ErrorCode;
 import com.luo.usercenter.exception.BusinessException;
 import com.luo.usercenter.model.domain.User;
+import com.luo.usercenter.model.domain.request.UserUpdatePasswordRequest;
 import com.luo.usercenter.service.UserService;
 import com.luo.usercenter.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -201,6 +203,58 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return 1;
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        //        获取登录态
+        Object userObj=request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser= (User) userObj;
+        if(currentUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+//        根据if获取到用户信息，去数据库查询
+        Long userId = currentUser.getId();
+        if (userId==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User user = this.getById(userId);
+        if (user==null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        User safeUser = this.getSafteyUser(user);
+        if (safeUser==null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+
+        return  safeUser;
+    }
+
+    @Override
+    public boolean updateUserPassword(UserUpdatePasswordRequest updatePasswordRequest, HttpServletRequest request) {
+        if (updatePasswordRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = getLoginUser(request);
+        Long userId = loginUser.getId();
+        if (userId < 0 || userId == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR, "不存在该用户");
+        }
+        User user = new User();
+        BeanUtils.copyProperties(updatePasswordRequest, user);
+        user.setId(loginUser.getId());
+
+        // 使用 MD5 加密新密码
+        String encryptedPassword = DigestUtils.md5DigestAsHex((SALT + updatePasswordRequest.getNewPassword()).getBytes());
+        user.setUserPassword(encryptedPassword);
+        if (encryptedPassword.equals(updatePasswordRequest.getUserPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "修改密码不能相同");
+        }
+        boolean result = updateById(user);
+        if (!result) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"操作数据库出错");
+        }
+        return true;
     }
 
 }

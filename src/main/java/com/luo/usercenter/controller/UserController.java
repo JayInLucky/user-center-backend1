@@ -6,10 +6,10 @@ import com.luo.usercenter.common.ErrorCode;
 import com.luo.usercenter.common.ResultUtils;
 import com.luo.usercenter.exception.BusinessException;
 import com.luo.usercenter.model.domain.User;
-import com.luo.usercenter.model.domain.request.UserLoginRequest;
-import com.luo.usercenter.model.domain.request.UserRegisterRequest;
+import com.luo.usercenter.model.domain.request.*;
 import com.luo.usercenter.service.UserService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -35,6 +35,11 @@ public class UserController {
     @Resource
     private UserService userService;
 
+    /**
+     * 用户 注册
+     * @param userRegisterRequest
+     * @return
+     */
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest){
         if(userRegisterRequest==null){
@@ -51,6 +56,12 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 用户登录
+     * @param userLoginRequest
+     * @param request
+     * @return
+     */
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request  ){
         if(userLoginRequest==null){
@@ -65,6 +76,11 @@ public class UserController {
         return ResultUtils.success(user);
     }
 
+    /**
+     * 用户注销
+     * @param request
+     * @return
+     */
     @PostMapping("/logout")
     public BaseResponse<Integer> userLogout(HttpServletRequest request){
         if(request==null){
@@ -74,26 +90,23 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 获取当前登录用户
+     * @param request
+     * @return
+     */
     @GetMapping("/current")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request){
-        Object userObj=request.getSession().getAttribute(USER_LOGIN_STATE);
-        User currentUser= (User) userObj;
-        if(currentUser==null){
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
-        }
-        Long userId = currentUser.getId();
-        if (userId==null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        //todo 检验用户是否合法
-        User user = userService.getById(userId);
-        if (user==null){
-            throw new BusinessException(ErrorCode.NULL_ERROR);
-        }
-        User safeUser = userService.getSafteyUser(user);
+        User safeUser=userService.getLoginUser(request);
         return ResultUtils.success(safeUser);
     }
 
+    /**
+     * 查询用户
+     * @param username
+     * @param request
+     * @return
+     */
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request){
         if(!isAdmin(request)){
@@ -101,7 +114,7 @@ public class UserController {
         }
         QueryWrapper<User> queryWrapper =new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)){
-            queryWrapper.eq("username",username);
+            queryWrapper.like("username",username);
         }
         List<User> userList=userService.list(queryWrapper);
         //脱敏
@@ -109,16 +122,25 @@ public class UserController {
         return ResultUtils.success(list);
     }
 
+    /**
+     * 删除用户
+     * @param userDeleteRequest
+     * @param request
+     * @return
+     */
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteUsers(@RequestBody long id,HttpServletRequest request){
+    public BaseResponse<Boolean> deleteUsers(@RequestBody UserDeleteRequest userDeleteRequest, HttpServletRequest request){
        if(!isAdmin(request)){
            throw new BusinessException(ErrorCode.NO_AUTH);
        }
-       if(id<=0){
+       if (userDeleteRequest == null || userDeleteRequest.getId()<=0){
            throw new BusinessException(ErrorCode.PARAMS_ERROR);
        }
-       boolean b =userService.removeById(id);
-       return ResultUtils.success(b);
+       boolean removeUser =userService.removeById(userDeleteRequest.getId());
+       if (!removeUser){
+           throw new BusinessException(ErrorCode.SYSTEM_ERROR,"操作数据库出错");
+       }
+       return ResultUtils.success(true);
     }
 
     /**
@@ -131,8 +153,109 @@ public class UserController {
         //仅管理员可查询
         Object userObj=request.getSession().getAttribute(USER_LOGIN_STATE);
         User user = (User) userObj;
+//        管理员 校验
         return user != null && user.getUserRole() == ADMIN_ROLE;
     }
+
+
+    /**
+     * 新增用户
+     * @param userAddRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/add")
+    public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest,HttpServletRequest request){
+        if (!isAdmin(request)){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        if (userAddRequest ==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User user = new User();
+        BeanUtils.copyProperties(userAddRequest,user);
+        boolean result = userService.save(user);
+        if (!result){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        return ResultUtils.success(user.getId());
+    }
+
+
+    /**
+     * 用户更新自己的个人信息
+     * @param userUpdateMyRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/update/my")
+    public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest, HttpServletRequest request){
+
+        if (userUpdateMyRequest ==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        User user=new User();
+        BeanUtils.copyProperties(userUpdateMyRequest,user);
+        user.setId(loginUser.getId());
+        boolean result = userService.updateById(user);
+        if (!result){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"操作数据库数值返回为false");
+        }
+        return ResultUtils.success(true);
+    }
+
+
+    /**
+     * 管理员更新用户信息
+     * @param userUpdateRequest
+     * @param request
+     * @return
+     */
+    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,HttpServletRequest request){
+
+        if (!isAdmin(request)){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        if (userUpdateRequest == null || userUpdateRequest.getId() == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User user = new User();
+        BeanUtils.copyProperties(userUpdateRequest,user);
+        boolean result = userService.updateById(user);
+        if (!result){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"操作数据库出错");
+        }
+        return ResultUtils.success(true);
+
+
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param updatePasswordRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/update/password")
+    public BaseResponse<Boolean> updateUserPassword(@RequestBody UserUpdatePasswordRequest updatePasswordRequest,
+                                                    HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            throw new BusinessException(ErrorCode.NO_AUTH, "无权限");
+        }
+        boolean updateUserPassword = userService.updateUserPassword(updatePasswordRequest, request);
+        if (updateUserPassword) {
+            return ResultUtils.success(true);
+        } else {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
+        }
+    }
+
+
+
+
+
 
 
 

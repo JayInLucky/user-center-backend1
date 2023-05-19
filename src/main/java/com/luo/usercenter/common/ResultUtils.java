@@ -37,7 +37,7 @@ public class ResultUtils {
     }
 
     /**
-     * 失败
+     * 失败 - 消息和描述
      * @param errorCode
      * @param message
      * @param description
@@ -48,7 +48,7 @@ public class ResultUtils {
     }
 
     /**
-     * 失败
+     * 失败 - 描述无消息
      * @param errorCode
      * @param description
      * @return
@@ -56,6 +56,5 @@ public class ResultUtils {
     public static BaseResponse error(ErrorCode errorCode,String description){
         return new BaseResponse(errorCode.getCode(),errorCode.getMessage(),description);
     }
-
 
 }

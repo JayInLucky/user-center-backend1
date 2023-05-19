@@ -1,5 +1,9 @@
 package com.luo.usercenter.common;
 
+/**
+ * @author jj
+ */
+
 public enum ErrorCode {
     SUCCESS(0,"ok",""),
     PARAMS_ERROR(40000,"请求参数错误",""),

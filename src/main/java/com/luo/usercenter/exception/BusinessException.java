@@ -4,6 +4,7 @@ import com.luo.usercenter.common.ErrorCode;
 
 /**
  * 自定义异常类
+ * @author jj
  */
 public class BusinessException extends RuntimeException{
 
