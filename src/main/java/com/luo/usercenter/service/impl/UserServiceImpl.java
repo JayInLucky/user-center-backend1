@@ -210,9 +210,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //        获取登录态
         Object userObj=request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser= (User) userObj;
+
         if(currentUser==null){
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
+
 //        根据if获取到用户信息，去数据库查询
         Long userId = currentUser.getId();
         if (userId==null){

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 用户创建请求
+ * 管理员更新用户信息的请求体
  *
  * @author jj
  */

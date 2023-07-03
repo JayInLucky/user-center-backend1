@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 用户创建请求
+ * 用户更新自己信息的请求体
  *
  * @author jj
  */

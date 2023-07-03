@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 用户更新请求
+ * 用户查询请求
  *
  * @author jj
  */

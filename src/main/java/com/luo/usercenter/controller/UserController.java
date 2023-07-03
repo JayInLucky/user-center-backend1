@@ -37,7 +37,7 @@ public class UserController {
     private UserService userService;
 
     /**
-     * 用户 注册
+     * 用户注册
      * @param userRegisterRequest
      * @return
      */
@@ -101,6 +101,20 @@ public class UserController {
         User safeUser=userService.getLoginUser(request);
         return ResultUtils.success(safeUser);
     }
+
+//    @GetMapping("/search")
+//    public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
+//        if (!isAdmin(request)) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        if (StringUtils.isNotBlank(username)) {
+//            queryWrapper.like("username", username);
+//        }
+//        List<User> userList = userService.list(queryWrapper);
+//        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+//        return ResultUtils.success(list);
+//    }
 
     /**
      * 查询用户
@@ -275,8 +289,6 @@ public class UserController {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"操作数据库出错");
         }
         return ResultUtils.success(true);
-
-
     }
 
     /**
