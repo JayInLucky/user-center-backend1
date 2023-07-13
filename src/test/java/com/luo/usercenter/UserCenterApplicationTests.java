@@ -8,15 +8,15 @@ import org.springframework.util.DigestUtils;
 @SpringBootTest
 class UserCenterApplicationTests {
 
-    @Test
-    void testDigest() throws Exception {
-        String newPassword = DigestUtils.md5DigestAsHex(("abcd"+"mypassword").getBytes());
-        System.out.println(newPassword);
-    }
-
-
-    @Test
-    void contextLoads() {
-    }
+//    @Test
+//    void testDigest() throws Exception {
+//        String newPassword = DigestUtils.md5DigestAsHex(("abcd"+"mypassword").getBytes());
+//        System.out.println(newPassword);
+//    }
+//
+//
+//    @Test
+//    void contextLoads() {
+//    }
 
 }

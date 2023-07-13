@@ -9,15 +9,15 @@ import javax.annotation.Resource;
 @SpringBootTest
 public class ImplTest {
 
-    @Resource
-    private UserMapper userMapper;
-
-    private long userRegister(String userAccount, String userPassword, String checkPassword,String planetCode){
-        //1.校验
-        if (StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
-
-        }
-
-    }
+//    @Resource
+//    private UserMapper userMapper;
+//
+//    private long userRegister(String userAccount, String userPassword, String checkPassword,String planetCode){
+//        //1.校验
+//        if (StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
+//
+//        }
+//    return 0;
+//    }
 
 }
